@@ -1,0 +1,43 @@
+# Trigger the pipeline on changes to the main branch
+trigger:
+  branches:
+    include:
+      - master
+
+# Define the pool to use an Ubuntu VM for the build
+pool:
+  vmImage: 'ubuntu-latest'
+
+# Define the steps to execute in the pipeline
+steps:
+  # Step to use a specific Python version
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.12'
+      addToPath: true
+    displayName: 'Setup Python 3.12'
+
+  # Step to install dependencies from requirements.txt
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: 'Install dependencies'
+
+  # Step to package the application into a ZIP file
+  - script: |
+      zip -r app.zip .
+    displayName: 'Package application'
+
+  # Publish the ZIP file as an artifact for the release pipeline
+  - publish: $(Build.ArtifactStagingDirectory)/app.zip
+    artifact: drop
+    displayName: 'Publish Artifact'
+
+# Deploy the application to Azure Web App
+# Ensure the AzureWebApp@1 task has the correct service connection, app name, and artifact path
+  - task: AzureWebApp@1
+    inputs:
+      azureSubscription: 'My_Azure_Subscription'  # Name of the Azure Service Connection
+      appName: 'abcjdakshka'  # Name of the Azure Web App
+      package: '$(Pipeline.Workspace)/drop/app.zip'  # Path to the ZIP file
+    displayName: 'Deploy to Azure Web App'
