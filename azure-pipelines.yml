@@ -23,13 +23,13 @@ steps:
   ##  python -m unittest discover
   ##displayName: 'Run tests'
 
-##- script: |
-  ##  mkdir -p $(Build.ArtifactStagingDirectory)/app
-    ##zip -r $(Build.ArtifactStagingDirectory)/app.zip . -x "*.git*"
-  ##displayName: 'Package application'
+- script: |
+    mkdir -p $(Build.ArtifactStagingDirectory)/app
+    zip -r $(Build.ArtifactStagingDirectory)/app.zip . -x "*.git*"
+  displayName: 'Package application'
 
-##- publish: $(Build.ArtifactStagingDirectory)/app.zip
-  ##artifact: drop
+- publish: $(Build.ArtifactStagingDirectory)/app.zip
+  artifact: drop
 
 - task: AzureWebApp@1
   inputs:
