@@ -4,7 +4,7 @@ trigger:
       - master
 
 variables:
-  ##azureServiceConnectionId: 'ccc94bb2-c7b2-45c0-9b0a-37e1560b517a'
+  azureServiceConnectionId: 'My_Azure_Subscription'
   webAppName: 'abcjdakshka'
   vmImageName: 'ubuntu-latest'
   environmentName: 'abcjdakshka'
@@ -66,6 +66,6 @@ stages:
                 - task: AzureWebApp@1
                   displayName: 'Deploy Azure Web App: $(webAppName)'
                   inputs:
-                    ##azureSubscription: $(azureServiceConnectionId)
+                    azureSubscription: $(azureServiceConnectionId)
                     appName: $(webAppName)
                     package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
