@@ -1,0 +1,29 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.12'
+    addToPath: true
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    python -m unittest discover
+  displayName: 'Run tests'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'My_Azure_Subscription'
+    appName: 'my-python-app'
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+  displayName: 'Deploy to Azure Web App'
