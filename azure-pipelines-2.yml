@@ -1,43 +1,71 @@
-# Trigger the pipeline on changes to the main branch
 trigger:
   branches:
     include:
       - master
 
-# Define the pool to use an Ubuntu VM for the build
-pool:
-  vmImage: 'ubuntu-latest'
+variables:
+  ##azureServiceConnectionId: 'ccc94bb2-c7b2-45c0-9b0a-37e1560b517a'
+  webAppName: 'abcjdakshka'
+  vmImageName: 'ubuntu-latest'
+  environmentName: 'abcjdakshka'
+  projectRoot: $(System.DefaultWorkingDirectory)
+  pythonVersion: '3.12'
 
-# Define the steps to execute in the pipeline
-steps:
-  # Step to use a specific Python version
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.12'
-      addToPath: true
-    displayName: 'Setup Python 3.12'
+stages:
+  - stage: Build
+    displayName: Build stage
+    jobs:
+      - job: BuildJob
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
 
-  # Step to install dependencies from requirements.txt
-  - script: |
-      python -m pip install --upgrade pip
-      pip install -r requirements.txt
-    displayName: 'Install dependencies'
+          - script: |
+              python -m venv antenv
+              source antenv/bin/activate
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            workingDirectory: $(projectRoot)
+            displayName: "Install requirements"
 
-  # Step to package the application into a ZIP file
-  - script: |
-      zip -r app.zip .
-    displayName: 'Package application'
+          - task: ArchiveFiles@2
+            displayName: 'Archive files'
+            inputs:
+              rootFolderOrFile: '$(projectRoot)'
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+              replaceExistingArchive: true
 
-  # Publish the ZIP file as an artifact for the release pipeline
-  - publish: $(Build.ArtifactStagingDirectory)/app.zip
-    artifact: drop
-    displayName: 'Publish Artifact'
+          - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+            artifact: drop
+            displayName: 'Publish package'
 
-# Deploy the application to Azure Web App
-# Ensure the AzureWebApp@1 task has the correct service connection, app name, and artifact path
-  - task: AzureWebApp@1
-    inputs:
-      azureSubscription: 'My_Azure_Subscription'  # Name of the Azure Service Connection
-      appName: 'abcjdakshka'  # Name of the Azure Web App
-      package: '$(System.DefaultWorkingDirectory)/**/*.zip'  # Path to the ZIP file
-    displayName: 'Deploy to Azure Web App'
+  - stage: Deploy
+    displayName: 'Deploy Web App'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeploymentJob
+        pool:
+          vmImage: $(vmImageName)
+        environment: $(environmentName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: UsePythonVersion@0
+                  inputs:
+                    versionSpec: '$(pythonVersion)'
+                  displayName: 'Use Python version'
+
+                - task: AzureWebApp@1
+                  displayName: 'Deploy Azure Web App: $(webAppName)'
+                  inputs:
+                    ##azureSubscription: $(azureServiceConnectionId)
+                    appName: $(webAppName)
+                    package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
