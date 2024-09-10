@@ -39,5 +39,5 @@ steps:
     inputs:
       azureSubscription: 'My_Azure_Subscription'  # Name of the Azure Service Connection
       appName: 'abcjdakshka'  # Name of the Azure Web App
-      package: '$(Pipeline.Workspace)/drop/app.zip'  # Path to the ZIP file
+      package: '$(System.DefaultWorkingDirectory)/**/*.zip'  # Path to the ZIP file
     displayName: 'Deploy to Azure Web App'
