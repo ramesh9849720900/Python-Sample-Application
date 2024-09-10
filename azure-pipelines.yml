@@ -34,6 +34,6 @@ steps:
 - task: AzureWebApp@1
   inputs:
     azureSubscription: 'My_Azure_Subscription'
-    appName: 'my-python-app'
+    appName: 'dot-net-webapp'
     package: '$(System.DefaultWorkingDirectory)/**/*.zip'
   displayName: 'Deploy to Azure Web App'
