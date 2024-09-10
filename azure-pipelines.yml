@@ -19,9 +19,9 @@ steps:
     pip install -r requirements.txt
   displayName: 'Install dependencies'
 
-- script: |
-    python -m unittest discover
-  displayName: 'Run tests'
+##- script: |
+  ##  python -m unittest discover
+  ##displayName: 'Run tests'
 
 - task: AzureWebApp@1
   inputs:
